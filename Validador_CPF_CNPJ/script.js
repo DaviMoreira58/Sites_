@@ -102,6 +102,18 @@ function limparCPF() {
     resultado.innerText = "";
 }
 
+function formatarCNPJ(input) {
+    var cnpj = input.value.replace(/\D/g, "");
+
+    if (cnpj.length === 12) {
+        input.value = cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{1})/, "$1.$2.$3/$4-$5");
+    } else if (cnpj.length === 14) {
+        input.value = cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+    } else {
+        input.value = cnpj;
+    }
+}
+
 function calcularDigitoVerificadorCNPJ(cnpjBase) {
     var pesosPrimeiroDigito = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
     var pesosSegundoDigito = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
@@ -125,15 +137,35 @@ function calcularDigitoVerificadorCNPJ(cnpjBase) {
     var segundoDigito = soma % 11;
     segundoDigito = segundoDigito < 2 ? 0 : 11 - segundoDigito;
 
-    // Retorna o CNPJ com os dígitos verificadores
     return cnpjBase + segundoDigito;
 }
 
+function apagarDigito(event) {
+    var input = document.getElementById("cpf");
+    var cpf = input.value.replace(/\D/g, "");
 
+    if (event.key === "Backspace") {
+        cpf = cpf.slice(0, -1);
+        if (cpf.length === 9) {
+            var cpfBase = cpf.substring(0, 9);
+            var cpfCompleto = calcularDigitoVerificador(cpfBase);
+            input.value = cpfCompleto;
+        } else {
+            input.value = cpf;
+        }
+    } else if (cpf.length === 9) {
+        var cpfBase = cpf.substring(0, 9);
+        var cpfCompleto = calcularDigitoVerificador(cpfBase);
+        input.value = cpfCompleto;
+    } else if (cpf.length === 11) {
+        input.value = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+    } else {
+        input.value = cpf;
+    }
+}
 
 function validarCNPJ() {
-    var cnpjElement = document.getElementById("cnpj");
-    var cnpj = cnpjElement.value.replace(/\D/g, "");
+    var cnpj = document.getElementById("cnpj").value.replace(/\D/g, "");
     var resultadoCNPJ = document.getElementById("resultadoCNPJ");
 
     if (cnpj.length === 14) {
@@ -143,12 +175,14 @@ function validarCNPJ() {
         if (cnpj !== cnpjCompleto) {
             resultadoCNPJ.innerText = "CNPJ inválido.";
         } else {
-            var cnpjFormatado = cnpjCompleto.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
-            resultadoCNPJ.innerText = "CNPJ válido: " + cnpjFormatado;
+            resultadoCNPJ.innerText = "CNPJ válido!";
         }
     } else if (cnpj.length === 8) {
-        cnpjBase = cnpj + "0001";
-        cnpjCompleto = calcularDigitoVerificadorCNPJ(cnpjBase);
+        // O usuário inseriu apenas 9 dígitos, adicionamos "0001" automaticamente
+        var cnpjBase = cnpj + "0001";
+        var cnpjCompleto = calcularDigitoVerificadorCNPJ(cnpjBase);
+
+        // Formatar o CNPJ gerado com dígitos verificadores
         var cnpjFormatado = cnpjCompleto.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
         resultadoCNPJ.innerText = "CNPJ gerado com dígitos verificadores: " + cnpjFormatado;
     } else {
@@ -156,8 +190,6 @@ function validarCNPJ() {
     }
 }
 
-
-// Função para formatar o CNPJ
 function formatarCNPJ(input) {
     var cnpj = input.value.replace(/\D/g, "");
 
@@ -168,7 +200,6 @@ function formatarCNPJ(input) {
     }
 }
 
-// Função para limpar o CNPJ
 function limparCNPJ() {
     var input = document.getElementById("cnpj");
     input.value = "";
